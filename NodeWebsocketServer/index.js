@@ -1,33 +1,106 @@
-let app = require('express')();
-let server = require('http').createServer(app);
-let io = require('socket.io')(server);
+/*
+	Express.js GET/POST example
+	Shows how handle GET, POST, PUT, DELETE
+	in Express.js 4.0
 
-let allSockets = [];
+	created 14 Feb 2016
+	by Tom Igoe
+*/
 
-io.on('connection', (socket) => {
-    allSockets.push(socket);
+var express = require('express');			// include express.js
+var app = express();						// a local instance of it
+var bodyParser = require('body-parser');	// include body-parser
+var WebSocketServer = require('ws').Server;	// include Web Socket server
 
-    let idTemp = socket.handshake.query.id;
+// you need a  body parser:
+app.use(bodyParser.urlencoded({extended: false})); // for application/x-www-form-urlencoded
 
-    console.log(`Track de temperatura iniciado ${temp}`);
+// this runs after the server successfully starts:
+function serverStart() {
+	var port = server.address().port;
+	console.log('Server listening on port '+ port);
+}
 
-    socket.join(id);
-
-    socket.on('track', (track) => {
-        console.log(`Track temperatura do forno: ${track.tempCentigrados}ºC - ${track.tempFarenheit}ºF | at ${track.at}`);
-        io.to(idTemp).emit('track', { track });
-    });
-
-    socket.on('disconnet', function(){
-        console.log('Disconnected');
-        let i = allSockets.indexOf(socket);
-        allSockets.splice(i, 1);
-    });
+app.get('/chunked', function(request, response) {
+	response.write('\n');
+	response.write('           `:;;;,`                      .:;;:.           \n');
+	response.write('        .;;;;;;;;;;;`                :;;;;;;;;;;:     TM \n');
+	response.write('      `;;;;;;;;;;;;;;;`            :;;;;;;;;;;;;;;;      \n');
+	response.write('     :;;;;;;;;;;;;;;;;;;         `;;;;;;;;;;;;;;;;;;     \n');
+	response.write('    ;;;;;;;;;;;;;;;;;;;;;       .;;;;;;;;;;;;;;;;;;;;    \n');
+	response.write('   ;;;;;;;;:`   `;;;;;;;;;     ,;;;;;;;;.`   .;;;;;;;;   \n');
+	response.write('  .;;;;;;,         :;;;;;;;   .;;;;;;;          ;;;;;;;  \n');
+	response.write('  ;;;;;;             ;;;;;;;  ;;;;;;,            ;;;;;;. \n');
+	response.write(' ,;;;;;               ;;;;;;.;;;;;;`              ;;;;;; \n');
+	response.write(' ;;;;;.                ;;;;;;;;;;;`      ```       ;;;;;`\n');
+	response.write(' ;;;;;                  ;;;;;;;;;,       ;;;       .;;;;;\n');
+	response.write('`;;;;:                  `;;;;;;;;        ;;;        ;;;;;\n');
+	response.write(',;;;;`    `,,,,,,,,      ;;;;;;;      .,,;;;,,,     ;;;;;\n');
+	response.write(':;;;;`    .;;;;;;;;       ;;;;;,      :;;;;;;;;     ;;;;;\n');
+	response.write(':;;;;`    .;;;;;;;;      `;;;;;;      :;;;;;;;;     ;;;;;\n');
+	response.write('.;;;;.                   ;;;;;;;.        ;;;        ;;;;;\n');
+	response.write(' ;;;;;                  ;;;;;;;;;        ;;;        ;;;;;\n');
+	response.write(' ;;;;;                 .;;;;;;;;;;       ;;;       ;;;;;,\n');
+	response.write(' ;;;;;;               `;;;;;;;;;;;;                ;;;;; \n');
+	response.write(' `;;;;;,             .;;;;;; ;;;;;;;              ;;;;;; \n');
+	response.write('  ;;;;;;:           :;;;;;;.  ;;;;;;;            ;;;;;;  \n');
+	response.write('   ;;;;;;;`       .;;;;;;;,    ;;;;;;;;        ;;;;;;;:  \n');
+	response.write('    ;;;;;;;;;:,:;;;;;;;;;:      ;;;;;;;;;;:,;;;;;;;;;;   \n');
+	response.write('    `;;;;;;;;;;;;;;;;;;;.        ;;;;;;;;;;;;;;;;;;;;    \n');
+	response.write('      ;;;;;;;;;;;;;;;;;           :;;;;;;;;;;;;;;;;:     \n');
+	response.write('       ,;;;;;;;;;;;;;,              ;;;;;;;;;;;;;;       \n');
+	response.write('         .;;;;;;;;;`                  ,;;;;;;;;:         \n');
+	response.write('                                                         \n');
+	response.write('                                                         \n');
+	response.write('                                                         \n');
+	response.write('                                                         \n');
+	response.write('    ;;;   ;;;;;`  ;;;;:  .;;  ;; ,;;;;;, ;;. `;,  ;;;;   \n');
+	response.write('    ;;;   ;;:;;;  ;;;;;; .;;  ;; ,;;;;;: ;;; `;, ;;;:;;  \n');
+	response.write('   ,;:;   ;;  ;;  ;;  ;; .;;  ;;   ,;,   ;;;,`;, ;;  ;;  \n');
+	response.write('   ;; ;:  ;;  ;;  ;;  ;; .;;  ;;   ,;,   ;;;;`;, ;;  ;;. \n');
+	response.write('   ;: ;;  ;;;;;:  ;;  ;; .;;  ;;   ,;,   ;;`;;;, ;;  ;;` \n');
+	response.write('  ,;;;;;  ;;`;;   ;;  ;; .;;  ;;   ,;,   ;; ;;;, ;;  ;;  \n');
+	response.write('  ;;  ,;, ;; .;;  ;;;;;:  ;;;;;: ,;;;;;: ;;  ;;, ;;;;;;  \n');
+	response.write('  ;;   ;; ;;  ;;` ;;;;.   `;;;:  ,;;;;;, ;;  ;;,  ;;;;   \n');
+	response.write('\n');
+	response.end();
 });
 
+// this is the POST handler:
+app.all('/*', function (request, response) {
+	console.log('Got a ' + request.method + ' request');
+	// the parameters of a GET request are passed in
+	// request.body. Pass that to formatResponse()
+	// for formatting:
+	console.log(request.headers);
+	if (request.method == 'GET') {
+		console.log(request.query);
+	} else {
+		console.log(request.body);
+	}
 
-var port = process.env.PORT || 3001;
+	// send the response:
+	response.send('OK');
+	response.end();
+});
 
-server.listen(port, function () {
-    console.log('listening in port:' + port);
+// start the server:
+var server = app.listen(3001, serverStart);
+
+// create a WebSocket server and attach it to the server
+const wss = new WebSocketServer({server: server});
+
+wss.on('connection', function connection(ws) {
+	// new connection, add message listener
+	ws.on('message', function incoming(message) {
+		// received a message
+		console.log('received: %s', message);
+
+		// echo it back
+		ws.send(message);
+	});
+
+    ws.on("error", function(error){
+        console.log(error.stack);
+    });
 });
