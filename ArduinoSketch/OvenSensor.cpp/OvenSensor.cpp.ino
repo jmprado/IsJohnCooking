@@ -50,6 +50,7 @@ void setup() {
   if (WiFi.status() == WL_NO_SHIELD) {
     while (true);
   }
+  
   while (status != WL_CONNECTED) {
     Serial.write("Conectando a rede wifi: ");
     Serial.write(ssid);
@@ -58,6 +59,8 @@ void setup() {
   
   Serial.write("Conectado a rede wifi: ");
   printWifiStatus();
+
+  client.begin();    
 }
 
 void loop() {
@@ -81,17 +84,28 @@ void loop() {
 
   char msg[128];
   serializeJson(doc, msg);
-  //msg = escapeQuotes(&msg);
   Serial.print(msg);
-  
-  client.begin();    
+    
   if (client.connected()) {    
     client.beginMessage(TYPE_TEXT);
-    client.print(msg);
+    client.println(msg);
     client.endMessage();
+
+    // check if a message is available to be received
+    int messageSize = client.parseMessage();
+
+    if (messageSize > 0) {
+      Serial.println("Received a message:");
+      Serial.println(client.readString());
+    }    
   }
+  else{
+    Serial.print("Server down");
+  }
+
+
   
-  delay(5000);
+  delay(4900);
 }
 
 void printWifiStatus()

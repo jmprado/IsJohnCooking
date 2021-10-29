@@ -90,17 +90,18 @@ var server = app.listen(3001, serverStart);
 // create a WebSocket server and attach it to the server
 const wss = new WebSocketServer({server: server});
 
+let sockets 
 wss.on('connection', function connection(ws) {
 	// new connection, add message listener
 	ws.on('message', function incoming(message) {
 		// received a message
-		console.log('received: %s', message);
+		console.log('received:' + message);
 
 		// echo it back
 		ws.send(message);
 	});
 
     ws.on("error", function(error){
-        console.log(error.stack);
+        console.log("foda-se");
     });
 });
