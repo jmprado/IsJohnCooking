@@ -2,16 +2,14 @@
 #include <LiquidCrystal.h>
 #include <WiFiEsp.h>
 #include <SoftwareSerial.h>
-#include <ArduinoJson.h>
 #include <ArduinoHttpClient.h>
+#include <ArduinoJson.h>0
 
 /* SETUP SENSOR DE TEMPERATURA */
 #define GPIO_SO   8
 #define GPIO_CS   9
 #define GPIO_CLK  10
 MAX6675 termopar(GPIO_CLK, GPIO_CS, GPIO_SO);
-
-#define DEBUG_SERIAL Serial
 
 /* LCD SETUP */
 LiquidCrystal lcd(13, 12, 5, 4, 3, 2);
@@ -35,13 +33,12 @@ float tempFarenheit = 0;
 
 StaticJsonDocument<64> doc;
 
-bool connected = false;
-unsigned long messageInterval = 5000;
-unsigned long lastUpdate = millis();
-
 void setup() {
   // put your setup code here, to run once:
   lcd.begin(16, 2);
+  lcd.setCursor(0, 0);
+  lcd.print("Inicializando...");  
+  
   Serial.begin(9600);
   Serial1.begin(9600);
 
@@ -58,8 +55,7 @@ void setup() {
   }
   
   Serial.write("Conectado a rede wifi: ");
-  printWifiStatus();
-
+  printWifiStatus();  
   client.begin();    
 }
 
@@ -79,15 +75,14 @@ void loop() {
   lcd.print("F");
 
   doc["id"] = "johncooking";
-  doc["tempCentigrados"] = tempCelsius;
+  doc["tempCelsius"] = tempCelsius;
   doc["tempFarenheit"] = tempFarenheit;  
 
   char msg[128];
   serializeJson(doc, msg);
-  Serial.print(msg);
     
   if (client.connected()) {    
-    client.beginMessage(TYPE_TEXT);
+    client.beginMessage(TYPE_TEXT);    
     client.println(msg);
     client.endMessage();
 
@@ -95,17 +90,16 @@ void loop() {
     int messageSize = client.parseMessage();
 
     if (messageSize > 0) {
-      Serial.println("Received a message:");
       Serial.println(client.readString());
     }    
   }
   else{
     Serial.print("Server down");
+    client.begin();
+    delay(500);
   }
 
-
-  
-  delay(4900);
+  delay(4500);
 }
 
 void printWifiStatus()
