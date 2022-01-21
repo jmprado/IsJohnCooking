@@ -3,16 +3,16 @@
 #include <WiFiEsp.h>
 #include <SoftwareSerial.h>
 #include <ArduinoHttpClient.h>
-#include <ArduinoJson.h>0
+#include <ArduinoJson.h>
 
 /* SETUP SENSOR DE TEMPERATURA */
-#define GPIO_SO   8
+#define GPIO_SO   10
 #define GPIO_CS   9
-#define GPIO_CLK  10
+#define GPIO_CLK  8
 MAX6675 termopar(GPIO_CLK, GPIO_CS, GPIO_SO);
 
 /* LCD SETUP */
-LiquidCrystal lcd(13, 12, 5, 4, 3, 2);
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 
 /* WIFI SETUP */
 #define ssid "ForaBolsoasno2.4"
@@ -23,9 +23,9 @@ int status = WL_IDLE_STATUS;
 SoftwareSerial Serial1(6, 7); //Serial setup for ESP8266
 
 /* WEBSOCKET SETUP */
-const char wsHost[] = "192.168.0.141";
+const char wsHost[] = "wsoventemp.magix.net.br";
 const char wsPath[] = "/";
-const int port = 3001;
+const int port = 80;
 WebSocketClient client = WebSocketClient(wifiClient, wsHost, port);
 
 float tempCelsius = 0;
@@ -64,6 +64,8 @@ void loop() {
   tempCelsius = termopar.readCelsius();
   tempFarenheit = termopar.readFarenheit();
 
+  String message = String(tempCelsius) +  " | " + String(tempFarenheit);
+
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Temp. Forno:");
@@ -74,27 +76,16 @@ void loop() {
   lcd.print(tempFarenheit, 1);
   lcd.print("F");
 
-  doc["id"] = "johncooking";
-  doc["tempCelsius"] = tempCelsius;
-  doc["tempFarenheit"] = tempFarenheit;  
-
-  char msg[128];
-  serializeJson(doc, msg);
-    
+  Serial.println("");
+  Serial.print(message);
+  Serial.println(""); 
   if (client.connected()) {    
     client.beginMessage(TYPE_TEXT);    
-    client.println(msg);
+    client.println(message);
     client.endMessage();
-
-    // check if a message is available to be received
-    int messageSize = client.parseMessage();
-
-    if (messageSize > 0) {
-      Serial.println(client.readString());
-    }    
   }
   else{
-    Serial.print("Server down");
+    Serial.println("Server unreacheble or down");
     client.begin();
     delay(500);
   }
@@ -108,7 +99,7 @@ void printWifiStatus()
   Serial.print("SSID: ");
   Serial.println(WiFi.SSID());
 
-  // print your WiFi shield's IP address
+  // print your WiFi shield's IP address 
   IPAddress ip = WiFi.localIP();
   Serial.print("IP Address: ");
   Serial.println(ip);

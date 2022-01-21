@@ -6,12 +6,13 @@
 	created 14 Feb 2016
 	by Tom Igoe
 */
-
+'use strict'
 var express = require("express"); // include express.js
 var app = express(); // a local instance of it
 var bodyParser = require("body-parser"); // include body-parser
 var WebSocketServer = require("ws").Server; // include Web Socket server
 var wsBasicAuth = require("ws-basic-auth-express");
+const { json } = require("body-parser");
 
 // you need a  body parser:
 app.use(bodyParser.urlencoded({ extended: false })); // for application/x-www-form-urlencoded
@@ -103,6 +104,7 @@ wss.on("connection", function connection(ws) {
   // new connection, add message listener
   ws.on("message", function incoming(message) {
     // received a message
+
     console.log("received:" + message);
 
     // echo it back
@@ -110,6 +112,6 @@ wss.on("connection", function connection(ws) {
   });
 
   ws.on("error", function (error) {
-    console.log("foda-se");
+    console.log("foda-se: " + error);
   });
 });
