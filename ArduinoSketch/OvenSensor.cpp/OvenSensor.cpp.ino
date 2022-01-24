@@ -3,7 +3,6 @@
 #include <WiFiEsp.h>
 #include <SoftwareSerial.h>
 #include <ArduinoHttpClient.h>
-#include <ArduinoJson.h>
 
 /* SETUP SENSOR DE TEMPERATURA */
 #define GPIO_SO   10
@@ -31,8 +30,6 @@ WebSocketClient client = WebSocketClient(wifiClient, wsHost, port);
 float tempCelsius = 0;
 float tempFarenheit = 0;
 
-StaticJsonDocument<64> doc;
-
 void setup() {
   // put your setup code here, to run once:
   lcd.begin(16, 2);
@@ -42,24 +39,16 @@ void setup() {
   Serial.begin(9600);
   Serial1.begin(9600);
 
-  WiFi.init(&Serial1);
-
-  if (WiFi.status() == WL_NO_SHIELD) {
-    while (true);
-  }
-  
-  while (status != WL_CONNECTED) {
-    Serial.write("Conectando a rede wifi: ");
-    Serial.write(ssid);
-    status = WiFi.begin(ssid, pass);
-  }
-  
-  Serial.write("Conectado a rede wifi: ");
-  printWifiStatus();  
-  client.begin();    
+  initWiFi();
 }
 
 void loop() {
+if (WiFi.status() != WL_CONNECTED) {
+    ESP.reset();
+    initWiFi();
+  }
+
+  
   // put your main code here, to run repeatedly:
   tempCelsius = termopar.readCelsius();
   tempFarenheit = termopar.readFarenheit();
@@ -79,6 +68,7 @@ void loop() {
   Serial.println("");
   Serial.print(message);
   Serial.println(""); 
+  
   if (client.connected()) {    
     client.beginMessage(TYPE_TEXT);    
     client.println(message);
@@ -109,4 +99,23 @@ void printWifiStatus()
   Serial.print("Signal strength (RSSI):");
   Serial.print(rssi);
   Serial.println(" dBm");
+}
+
+void initWiFi()
+{
+  WiFi.init(&Serial1);
+
+  if (WiFi.status() == WL_NO_SHIELD) {
+    while (true);
+  }
+  
+  while (status != WL_CONNECTED) {
+    Serial.write("Conectando a rede wifi: ");
+    Serial.write(ssid);
+    status = WiFi.begin(ssid, pass);
+  }
+  
+  Serial.write("Conectado a rede wifi: ");
+  printWifiStatus();  
+  client.begin();   
 }

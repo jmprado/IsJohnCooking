@@ -1,28 +1,22 @@
 /*
-	Express.js GET/POST example
-	Shows how handle GET, POST, PUT, DELETE
-	in Express.js 4.0
+  Express.js GET/POST example
+  Shows how handle GET, POST, PUT, DELETE
+  in Express.js 4.0
 
-	created 14 Feb 2016
-	by Tom Igoe
+  created 14 Feb 2016
+  by Tom Igoe
 */
 'use strict'
 var express = require("express"); // include express.js
 var app = express(); // a local instance of it
 var bodyParser = require("body-parser"); // include body-parser
 var WebSocketServer = require("ws").Server; // include Web Socket server
-var wsBasicAuth = require("ws-basic-auth-express");
-const { json } = require("body-parser");
 
 // you need a  body parser:
 app.use(bodyParser.urlencoded({ extended: false })); // for application/x-www-form-urlencoded
 
-let _username = "joao";
-let _password = "jmlcol1303@";
+var sockets = [];
 
-var wsAuth = wsBasicAuth(function (username, password) {
-  return username === _username && password === _password;
-});
 
 // this runs after the server successfully starts:
 function serverStart() {
@@ -93,6 +87,11 @@ app.all("/*", function (request, response) {
   response.end();
 });
 
+server = HttpsServer({
+    cert: fs.readFileSync("/etc/letsencrypt/live/oventemp.magix.net.br/cert.pem"),
+    key: fs.readFileSync(config.ssl_key_path)
+})
+
 // start the server:
 var server = app.listen(3001, serverStart);
 
@@ -101,17 +100,21 @@ const wss = new WebSocketServer({ server: server });
 
 //server.on('upgrade', wsAuth);
 wss.on("connection", function connection(ws) {
-  // new connection, add message listener
+  sockets.push(ws);
+  console.log("New client connected " + ws);
+
   ws.on("message", function incoming(message) {
-    // received a message
-
-    console.log("received:" + message);
-
-    // echo it back
-    ws.send(message);
+    // broadcast
+    console.log("Broadcasting: " + message);
+    sockets.forEach(w => {
+      w.send(String(message));
+    });
   });
 
   ws.on("error", function (error) {
     console.log("foda-se: " + error);
   });
+
+  ws.send('Welcome by server!')
+
 });
