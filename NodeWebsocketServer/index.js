@@ -87,11 +87,6 @@ app.all("/*", function (request, response) {
   response.end();
 });
 
-server = HttpsServer({
-    cert: fs.readFileSync("/etc/letsencrypt/live/oventemp.magix.net.br/cert.pem"),
-    key: fs.readFileSync(config.ssl_key_path)
-})
-
 // start the server:
 var server = app.listen(3001, serverStart);
 
@@ -116,5 +111,4 @@ wss.on("connection", function connection(ws) {
   });
 
   ws.send('Welcome by server!')
-
 });

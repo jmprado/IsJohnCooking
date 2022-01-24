@@ -42,13 +42,7 @@ void setup() {
   initWiFi();
 }
 
-void loop() {
-if (WiFi.status() != WL_CONNECTED) {
-    ESP.reset();
-    initWiFi();
-  }
-
-  
+void loop() {  
   // put your main code here, to run repeatedly:
   tempCelsius = termopar.readCelsius();
   tempFarenheit = termopar.readFarenheit();
