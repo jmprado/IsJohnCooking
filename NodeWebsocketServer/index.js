@@ -93,14 +93,13 @@ var server = app.listen(3001, serverStart);
 // create a WebSocket server and attach it to the server
 const wss = new WebSocketServer({ server: server });
 
-//server.on('upgrade', wsAuth);
 wss.on("connection", function connection(ws) {
   sockets.push(ws);
-  console.log("New client connected " + ws);
+  console.log("[" + new Date() + "]New client connected " + ws);
 
   ws.on("message", function incoming(message) {
     // broadcast
-    console.log("Broadcasting: " + message);
+    console.log("[" + new Date() + "]Broadcasting: " + message);
     sockets.forEach(w => {
       w.send(String(message));
     });
@@ -110,5 +109,5 @@ wss.on("connection", function connection(ws) {
     console.log("foda-se: " + error);
   });
 
-  ws.send('Welcome by server!')
+  ws.send('Welcome by server!');
 });
