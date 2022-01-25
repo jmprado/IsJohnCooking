@@ -14,11 +14,11 @@ MAX6675 termopar(GPIO_CLK, GPIO_CS, GPIO_SO);
 LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 
 /* WIFI SETUP */
-// #define ssid "ForaBolsoasno2.4"
-// #define pass "jupeva98"
+#define ssid "ForaBolsoasno2.4"
+#define pass "jupeva98"
 
-#define ssid "santiago-107-102"
-#define pass "zazagon1937"
+// #define ssid "santiago-107-102"
+// #define pass "zazagon1937"
 
 WiFiEspClient wifiClient;
 int status = WL_IDLE_STATUS;
@@ -105,7 +105,6 @@ void printWifiStatus()
 void initWiFi()
 {
   int attempts = 0;
-
   WiFi.init(&Serial1);
 
   if (WiFi.status() == WL_NO_SHIELD) {
