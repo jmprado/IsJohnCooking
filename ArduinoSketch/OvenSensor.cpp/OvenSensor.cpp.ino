@@ -14,8 +14,11 @@ MAX6675 termopar(GPIO_CLK, GPIO_CS, GPIO_SO);
 LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 
 /* WIFI SETUP */
-#define ssid "ForaBolsoasno2.4"
-#define pass "jupeva98"
+// #define ssid "ForaBolsoasno2.4"
+// #define pass "jupeva98"
+
+#define ssid "santiago-107-102"
+#define pass "zazagon1937"
 
 WiFiEspClient wifiClient;
 int status = WL_IDLE_STATUS;
@@ -25,56 +28,60 @@ SoftwareSerial Serial1(6, 7); //Serial setup for ESP8266
 const char wsHost[] = "wsoventemp.magix.net.br";
 const char wsPath[] = "/";
 const int port = 80;
-WebSocketClient client = WebSocketClient(wifiClient, wsHost, port);
 
-float tempCelsius = 0;
-float tempFarenheit = 0;
+WebSocketClient client = WebSocketClient(wifiClient, wsHost, port);
 
 void setup() {
   // put your setup code here, to run once:
   lcd.begin(16, 2);
   lcd.setCursor(0, 0);
-  lcd.print("Inicializando...");  
-  
+  lcd.print("Inicializando...");
+
   Serial.begin(9600);
   Serial1.begin(9600);
 
   initWiFi();
 }
 
-void loop() {  
-  // put your main code here, to run repeatedly:
-  tempCelsius = termopar.readCelsius();
-  tempFarenheit = termopar.readFarenheit();
+void loop() {
+  char tempCelsius[8] = {"\0"};
+  char tempFarenheit[8] = {"\0"};
+  char messageBuffer[32] = {"\0"};
 
-  String message = String(tempCelsius) +  " | " + String(tempFarenheit);
+  // put your main code here, to run repeatedly:
+  dtostrf(termopar.readCelsius(), 4, 1, tempCelsius);
+  dtostrf(termopar.readFarenheit(), 4, 1, tempFarenheit);
+
+  strcat(messageBuffer, tempCelsius);
+  strcat(messageBuffer, "|");
+  strcat(messageBuffer, tempFarenheit);
 
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Temp. Forno:");
   lcd.setCursor(0, 1);
-  lcd.print(tempCelsius, 1);
+  lcd.print(tempCelsius);
   lcd.print("C");
   lcd.print("|");
-  lcd.print(tempFarenheit, 1);
+  lcd.print(tempFarenheit);
   lcd.print("F");
 
   Serial.println("");
-  Serial.print(message);
-  Serial.println(""); 
-  
-  if (client.connected()) {    
-    client.beginMessage(TYPE_TEXT);    
-    client.println(message);
+  Serial.print(messageBuffer);
+  Serial.println("");
+
+  if (client.connected()) {
+    client.beginMessage(TYPE_TEXT);
+    client.print(messageBuffer);
     client.endMessage();
+    client.flush();
   }
-  else{
+  else {
     Serial.println("Server unreacheble or down");
     client.begin();
-    delay(500);
   }
 
-  delay(4500);
+  delay(5000);
 }
 
 void printWifiStatus()
@@ -83,7 +90,7 @@ void printWifiStatus()
   Serial.print("SSID: ");
   Serial.println(WiFi.SSID());
 
-  // print your WiFi shield's IP address 
+  // print your WiFi shield's IP address
   IPAddress ip = WiFi.localIP();
   Serial.print("IP Address: ");
   Serial.println(ip);
@@ -97,19 +104,23 @@ void printWifiStatus()
 
 void initWiFi()
 {
+  int attempts = 0;
+
   WiFi.init(&Serial1);
 
   if (WiFi.status() == WL_NO_SHIELD) {
-    while (true);
+    Serial.println("WiFi shield not found");
   }
-  
-  while (status != WL_CONNECTED) {
-    Serial.write("Conectando a rede wifi: ");
-    Serial.write(ssid);
-    status = WiFi.begin(ssid, pass);
+  else {
+    while (status != WL_CONNECTED && attempts < 3) {
+      Serial.print("Conectando a rede wifi: ");
+      Serial.println(ssid);
+      status = WiFi.begin(ssid, pass);
+      attempts++;
+    }
+
+    Serial.print("Conectado a rede wifi: ");
+    printWifiStatus();
+    client.begin();
   }
-  
-  Serial.write("Conectado a rede wifi: ");
-  printWifiStatus();  
-  client.begin();   
 }
