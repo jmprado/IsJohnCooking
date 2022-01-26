@@ -66,10 +66,6 @@ void loop() {
   lcd.print(tempFarenheit);
   lcd.print("F");
 
-  Serial.println("");
-  Serial.print(messageBuffer);
-  Serial.println("");
-
   if (client.connected()) {
     client.beginMessage(TYPE_TEXT);
     client.print(messageBuffer);
@@ -77,7 +73,7 @@ void loop() {
     client.flush();
   }
   else {
-    Serial.println("Server unreacheble or down");
+    Serial.println("Server unreacheble or down, trying to connect.");
     client.begin();
   }
 
